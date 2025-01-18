@@ -90,6 +90,8 @@ const int SCROLL_WHEEL_DOWN = 4;
 
 const float SCROLL_WHEEL_CLICK_FACTOR = 5.f;
 
+const int MSEC = 10000;
+
 // active mouse buttons (or them together):
 
 const int LEFT = 4;
@@ -178,6 +180,10 @@ float Scale;		// scaling factor
 float Time;			// used for animation, this has a value between 0. and 1.
 int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
+
+float uAd = .3;
+float uBd = .3;
+float uTol = .3;
 
 int SphereList;
 
@@ -406,12 +412,16 @@ void Display()
 
 	// set the uniform variables that will change over time:
 
-	NowS0 = 0.5f;
-	NowT0 = 0.5f;
-	NowD = 0.2f + 0.1f * sinf(2.f * F_PI * Time);
-	Pattern.SetUniformVariable((char *)"uS0", NowS0);
-	Pattern.SetUniformVariable((char *)"uT0", NowT0);
-	Pattern.SetUniformVariable((char *)"uD", NowD);
+	// turn # msec into the cycle ( 0 - MSEC-1 ):
+	int msec = glutGet(GLUT_ELAPSED_TIME) % MSEC;
+
+	// turn that into a time in seconds:
+	float nowTime = (float)msec / 1000.;
+
+	// Pattern.SetUniformVariable("uAd", Ad.GetValue(nowTime));
+	Pattern.SetUniformVariable("uAd", uAd);
+	Pattern.SetUniformVariable("uBd", uBd);
+	Pattern.SetUniformVariable("uTol", uTol);
 
 	glCallList(SphereList);
 
@@ -673,6 +683,13 @@ void InitGraphics()
 	// we don't need to do this for this program, and really should set the argument to NULL
 	// but, this sets us up nicely for doing animation
 
+	Ad.Init();
+	Ad.AddTimeValue(0.0, 1);
+	Ad.AddTimeValue(2.0, 2);
+	Ad.AddTimeValue(5.0, 3);
+	Ad.AddTimeValue(8.0, 4);
+	Ad.AddTimeValue(10.0, 5);
+
 	glutIdleFunc(Animate);
 
 	// init the glew package (a window must be open to do this):
@@ -759,6 +776,27 @@ void Keyboard(unsigned char c, int x, int y)
 	case 'o':
 	case 'O':
 		NowProjection = ORTHO;
+		break;
+
+	case 'a':
+		uAd = .1f;
+		break;
+	case 'A':
+		uAd = .6f;
+		break;
+
+	case 'b':
+		uBd = .1f;
+		break;
+	case 'B':
+		uBd = .6f;
+		break;
+
+	case 't':
+		uTol = .1f;
+		break;
+	case 'T':
+		uTol = .6f;
 		break;
 
 	case 'p':

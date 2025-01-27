@@ -1,3 +1,12 @@
 
-ERROR: 0:1: '' : syntax error: #version
+ERROR: 0:22: Invalid call of undeclared identifier 'texture'
+ERROR: 0:23: Use of undeclared identifier 'nv'
+ERROR: 0:23: Use of undeclared identifier 'nv'
+ERROR: 0:23: Use of undeclared identifier 'nv'
+ERROR: 0:23: Use of undeclared identifier 'nv'
+ERROR: 0:24: Use of undeclared identifier 'n'
+ERROR: 0:24: Use of undeclared identifier 'n'
+ERROR: 0:25: Use of undeclared identifier 'n'
+ERROR: 0:29: Use of undeclared identifier 'n'
+ERROR: 0:30: Use of undeclared identifier 'n'
 

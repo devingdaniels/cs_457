@@ -219,6 +219,8 @@ float Unit(float[3]);
 
 // Project 2
 GLuint Noise3;
+float uNoiseAmp = 0.5f;
+float uNoiseFreq = 10.0f;
 
 // utility to create an array from 3 separate values:
 
@@ -417,7 +419,11 @@ void Display()
 	Pattern.Use();
 	Pattern.SetUniformVariable("Noise3", 3);
 
+	fprintf(stderr, "Setting noise values - Amp: %f, Freq: %f\n", uNoiseAmp, uNoiseFreq);
+
 	// set the uniform variables that will change over time:
+	Pattern.SetUniformVariable((char *)"uNoiseAmp", uNoiseAmp);
+	Pattern.SetUniformVariable((char *)"uNoiseFreq", uNoiseFreq);
 
 	// turn # msec into the cycle ( 0 - MSEC-1 ):
 	int msec = glutGet(GLUT_ELAPSED_TIME) % MSEC;
@@ -748,9 +754,9 @@ void InitGraphics()
 	Pattern.SetUniformVariable((char *)"uShininess", 120.f);
 
 	// Project 2
-	Pattern.SetUniformVariable((char *)"uNoiseAmp", 0.5f);
-	Pattern.SetUniformVariable((char *)"uNoiseFreq", 10.0);
-	Pattern.SetUniformVariable((char *)"Noise3", 10);
+	Pattern.SetUniformVariable((char *)"uNoiseAmp", uNoiseAmp);
+	Pattern.SetUniformVariable((char *)"uNoiseFreq", uNoiseFreq);
+	// Pattern.SetUniformVariable((char *)"Noise3", 10);
 	Pattern.UnUse();
 }
 
@@ -825,6 +831,41 @@ void Keyboard(unsigned char c, int x, int y)
 		break;
 	case 'T':
 		uTol = .6f;
+		break;
+
+	case 'n':
+		if (uNoiseAmp > 0.0f)
+		{
+			fprintf(stderr, "uNoiseAmp: %f\n", uNoiseAmp);
+			uNoiseAmp -= 0.1f;
+			glutPostRedisplay();
+		}
+		break;
+	case 'N':
+		if (uNoiseAmp < 1.0f)
+		{
+			fprintf(stderr, "uNoiseAmp: %f\n", uNoiseAmp);
+			uNoiseAmp += 0.1f;
+			glutPostRedisplay();
+		}
+		break;
+
+	case 'm':
+		if (uNoiseFreq > 0.0f)
+		{
+			fprintf(stderr, "uNoiseFreq: %f\n", uNoiseFreq);
+			uNoiseFreq -= 0.5f;
+			glutPostRedisplay();
+		}
+		break;
+
+	case 'M':
+		if (uNoiseFreq < 10.0f)
+		{
+			fprintf(stderr, "uNoiseFreq: %f\n", uNoiseFreq);
+			uNoiseFreq += 0.5f;
+			glutPostRedisplay();
+		}
 		break;
 
 	case 'p':

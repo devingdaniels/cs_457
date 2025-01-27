@@ -29,11 +29,11 @@
 // #define GLM_FORCE_RADIANS
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
-// #include "glm/mat3x3.hpp"
-// #include "glm/mat4x4.hpp"
-// #include "glm/gtc/matrix_transform.hpp"
-// #include "glm/gtc/matrix_inverse.hpp"
-// #include "glm/gtc/type_ptr.hpp"
+#include "glm/mat3x3.hpp"
+#include "glm/mat4x4.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/matrix_inverse.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 //	This is a sample OpenGL / GLUT program
 //
@@ -209,12 +209,16 @@ void Reset();
 void Resize(int, int);
 void Visibility(int);
 
+unsigned char *ReadTexture3D(char *filename, int *width, int *height, int *depth);
 void Axes(float);
 void HsvRgb(float[3], float[3]);
 void Cross(float[3], float[3], float[3]);
 float Dot(float[3], float[3]);
 float Unit(float[3], float[3]);
 float Unit(float[3]);
+
+// Project 2
+GLuint Noise3;
 
 // utility to create an array from 3 separate values:
 
@@ -407,8 +411,11 @@ void Display()
 	glEnable(GL_NORMALIZE);
 
 	// draw the box object by calling up its display list:
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_3D, Noise3);
 
 	Pattern.Use();
+	Pattern.SetUniformVariable("Noise3", 3);
 
 	// set the uniform variables that will change over time:
 
@@ -706,6 +713,22 @@ void InitGraphics()
 #endif
 
 	// all other setups go here, such as GLSLProgram and KeyTime setups:
+	glGenTextures(1, &Noise3);
+	int nums, numt, nump;
+	unsigned char *texture = ReadTexture3D("noise3d.064.tex", &nums, &numt, &nump);
+	if (texture == NULL)
+	{
+		fprintf(stderr, "Could not load noise3d.064.tex!\n");
+	}
+
+	glBindTexture(GL_TEXTURE_3D, Noise3);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, nums, numt, nump, 0, GL_RGBA,
+				 GL_UNSIGNED_BYTE, texture);
 
 	Pattern.Init();
 	bool valid = Pattern.Create((char *)"pattern.vert", (char *)"pattern.frag");
@@ -723,6 +746,11 @@ void InitGraphics()
 	Pattern.SetUniformVariable((char *)"uColor", 1.f, 1.4f, 0.7f, 1.f);
 	Pattern.SetUniformVariable((char *)"uSpecularColor", 1.f, 1.f, 1.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uShininess", 120.f);
+
+	// Project 2
+	Pattern.SetUniformVariable((char *)"uNoiseAmp", 0.5f);
+	Pattern.SetUniformVariable((char *)"uNoiseFreq", 10.0);
+	Pattern.SetUniformVariable((char *)"Noise3", 10);
 	Pattern.UnUse();
 }
 
@@ -1188,4 +1216,28 @@ float Unit(float v[3])
 		v[2] /= dist;
 	}
 	return dist;
+}
+
+unsigned char *
+ReadTexture3D(char *filename, int *width, int *height, int *depth)
+{
+	FILE *fp = fopen(filename, "rb");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Could not load file %s!\n", filename);
+		return NULL;
+	}
+
+	int nums, numt, nump;
+	fread(&nums, 4, 1, fp);
+	fread(&numt, 4, 1, fp);
+	fread(&nump, 4, 1, fp);
+	fprintf(stderr, "Texture size = %d x %d x %d\n", nums, numt, nump);
+	*width = nums;
+	*height = numt;
+	*depth = nump;
+	unsigned char *texture = new unsigned char[4 * nums * numt * nump];
+	fread(texture, 4 * nums * numt * nump, 1, fp);
+	fclose(fp);
+	return texture;
 }

@@ -419,8 +419,6 @@ void Display()
 	Pattern.Use();
 	Pattern.SetUniformVariable("Noise3", 3);
 
-	fprintf(stderr, "Setting noise values - Amp: %f, Freq: %f\n", uNoiseAmp, uNoiseFreq);
-
 	// set the uniform variables that will change over time:
 	Pattern.SetUniformVariable((char *)"uNoiseAmp", uNoiseAmp);
 	Pattern.SetUniformVariable((char *)"uNoiseFreq", uNoiseFreq);
@@ -756,7 +754,6 @@ void InitGraphics()
 	// Project 2
 	Pattern.SetUniformVariable((char *)"uNoiseAmp", uNoiseAmp);
 	Pattern.SetUniformVariable((char *)"uNoiseFreq", uNoiseFreq);
-	// Pattern.SetUniformVariable((char *)"Noise3", 10);
 	Pattern.UnUse();
 }
 

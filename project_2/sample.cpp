@@ -809,27 +809,6 @@ void Keyboard(unsigned char c, int x, int y)
 		NowProjection = ORTHO;
 		break;
 
-	case 'a':
-		uAd = .1f;
-		break;
-	case 'A':
-		uAd = .6f;
-		break;
-
-	case 'b':
-		uBd = .1f;
-		break;
-	case 'B':
-		uBd = .6f;
-		break;
-
-	case 't':
-		uTol = .1f;
-		break;
-	case 'T':
-		uTol = .6f;
-		break;
-
 	case 'n':
 		if (uNoiseAmp > 0.0f)
 		{

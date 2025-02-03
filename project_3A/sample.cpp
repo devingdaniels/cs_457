@@ -179,13 +179,16 @@ float Time;			// used for animation, this has a value between 0. and 1.
 int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
 
-int SphereList;
+int CurtainPlaneList;
+float WaveAmplitude = 0.2f;
+float WavePeriod = 0.5f;
 
 // function prototypes:
 
 void Animate();
 void Display();
 void DoAxesMenu(int);
+
 void DoColorMenu(int);
 void DoDebugMenu(int);
 void DoMainMenu(int);
@@ -364,7 +367,7 @@ void Display()
 	if (NowProjection == ORTHO)
 		glOrtho(-2.f, 2.f, -2.f, 2.f, 0.1f, 1000.f);
 	else
-		gluPerspective(70.f, 1.f, 0.1f, 1000.f);
+		gluPerspective(45.f, 1.f, 0.1f, 1000.f);
 
 	// place the objects into the scene:
 
@@ -373,7 +376,7 @@ void Display()
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt(0.f, 0.f, 3.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+	gluLookAt(0.f, 0.f, 8.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
 
 	// rotate the scene:
 
@@ -399,6 +402,9 @@ void Display()
 	glEnable(GL_NORMALIZE);
 
 	// draw the box object by calling up its display list:
+	// float amplitude = 0.2f + 0.1f * sinf(2.f * F_PI * Time); // Animate amplitude
+	Pattern.SetUniformVariable((char *)"uA", WaveAmplitude);
+	Pattern.SetUniformVariable((char *)"uP", WavePeriod);
 
 	Pattern.Use();
 
@@ -411,7 +417,7 @@ void Display()
 	Pattern.SetUniformVariable((char *)"uT0", NowT0);
 	Pattern.SetUniformVariable((char *)"uD", NowD);
 
-	glCallList(SphereList);
+	glCallList(CurtainPlaneList);
 
 	Pattern.UnUse(); // Pattern.Use(0);  also works
 
@@ -701,7 +707,9 @@ void InitGraphics()
 	Pattern.SetUniformVariable((char *)"uKa", 0.1f);
 	Pattern.SetUniformVariable((char *)"uKd", 0.5f);
 	Pattern.SetUniformVariable((char *)"uKs", 0.4f);
-	Pattern.SetUniformVariable((char *)"uColor", 1.f, 0.5f, 0.f, 1.f);
+	Pattern.SetUniformVariable((char *)"uA", 0.2f);
+	Pattern.SetUniformVariable((char *)"uP", 0.5f);
+	Pattern.SetUniformVariable((char *)"uColor", 0.0f, 0.8f, 0.7f, 1.f);
 	Pattern.SetUniformVariable((char *)"uSpecularColor", 1.f, 1.f, 1.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uShininess", 12.f);
 	Pattern.UnUse();
@@ -719,11 +727,32 @@ void InitLists()
 
 	glutSetWindow(MainWindow);
 
-	// create the object:
+	CurtainPlaneList = glGenLists(1);
+	glNewList(CurtainPlaneList, GL_COMPILE);
 
-	SphereList = glGenLists(1);
-	glNewList(SphereList, GL_COMPILE);
-	OsuSphere(1., 64, 64);
+	float xmin = -2.f;
+	float xmax = 2.f;
+	float ymin = -2.f;
+	float ymax = 2.f;
+	float dx = xmax - xmin;
+	float dy = ymax - ymin;
+	float z = 0.f;
+	int numy = 512;
+	int numx = 512;
+	for (int iy = 0; iy < numy; iy++)
+	{
+		glBegin(GL_QUAD_STRIP);
+		glNormal3f(0., 0., 1.);
+		for (int ix = 0; ix <= numx; ix++)
+		{
+			glTexCoord2f((float)ix / (float)numx, (float)(iy + 0) / (float)numy);
+			glVertex3f(xmin + dx * (float)ix / (float)numx, ymin + dy * (float)(iy + 0) / (float)numy, z);
+			glTexCoord2f((float)ix / (float)numx, (float)(iy + 1) / (float)numy);
+			glVertex3f(xmin + dx * (float)ix / (float)numx, ymin + dy * (float)(iy + 1) / (float)numy, z);
+		}
+		glEnd();
+	}
+
 	glEndList();
 
 	// create the axes:
@@ -762,6 +791,22 @@ void Keyboard(unsigned char c, int x, int y)
 	case 'p':
 	case 'P':
 		NowProjection = PERSP;
+		break;
+
+	case 'a':
+		WaveAmplitude += 0.1f;
+		break;
+
+	case 'A':
+		WaveAmplitude -= 0.1f;
+		break;
+
+	case 'w':
+		WavePeriod += 0.1f;
+		break;
+
+	case 'W':
+		WavePeriod -= 0.1f;
 		break;
 
 	case 'q':

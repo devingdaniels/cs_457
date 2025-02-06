@@ -180,11 +180,16 @@ int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
 
 int CurtainPlaneList;
-float WaveAmplitude = 0.2f;
-float WavePeriod = 0.5f;
+float WaveAmplitude = 0.1f;
+float WavePeriod = 0.25f;
+
+// Project 3
+float NoiseAmplitude = 3.0;
+float NoiseFrequency = 2.0;
+GLuint Noise3;
 
 // function prototypes:
-
+unsigned char *ReadTexture3D(char *filename, int *width, int *height, int *depth);
 void Animate();
 void Display();
 void DoAxesMenu(int);
@@ -401,14 +406,22 @@ void Display()
 
 	glEnable(GL_NORMALIZE);
 
+	Pattern.Use();
+
 	// draw the box object by calling up its display list:
 	// float amplitude = 0.2f + 0.1f * sinf(2.f * F_PI * Time); // Animate amplitude
 	Pattern.SetUniformVariable((char *)"uA", WaveAmplitude);
 	Pattern.SetUniformVariable((char *)"uP", WavePeriod);
 
-	Pattern.Use();
+	// Project 3
+	Pattern.SetUniformVariable((char *)"uNoiseAmp", NoiseAmplitude);
+	Pattern.SetUniformVariable((char *)"uNoiseFreq", NoiseFrequency);
 
-	// set the uniform variables that will change over time:
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_3D, Noise3);
+
+		// set the uniform variables that will change over time:
+	Pattern.SetUniformVariable("Noise3", 3);
 
 	NowS0 = 0.5f;
 	NowT0 = 0.5f;
@@ -693,6 +706,22 @@ void InitGraphics()
 #endif
 
 	// all other setups go here, such as GLSLProgram and KeyTime setups:
+	glGenTextures(1, &Noise3);
+	int nums, numt, nump;
+	unsigned char *texture = ReadTexture3D("noise3d.064.tex", &nums, &numt, &nump);
+	if (texture == NULL)
+	{
+		fprintf(stderr, "Could not load noise3d.064.tex!\n");
+	}
+
+	glBindTexture(GL_TEXTURE_3D, Noise3);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, nums, numt, nump, 0, GL_RGBA,
+				 GL_UNSIGNED_BYTE, texture);
 
 	Pattern.Init();
 	bool valid = Pattern.Create((char *)"pattern.vert", (char *)"pattern.frag");
@@ -712,6 +741,8 @@ void InitGraphics()
 	Pattern.SetUniformVariable((char *)"uColor", 0.0f, 0.8f, 0.7f, 1.f);
 	Pattern.SetUniformVariable((char *)"uSpecularColor", 1.f, 1.f, 1.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uShininess", 12.f);
+	Pattern.SetUniformVariable((char *)"uNoiseAmp", NoiseAmplitude);
+	Pattern.SetUniformVariable((char *)"uNoiseFreq", NoiseFrequency);
 	Pattern.UnUse();
 }
 
@@ -730,10 +761,10 @@ void InitLists()
 	CurtainPlaneList = glGenLists(1);
 	glNewList(CurtainPlaneList, GL_COMPILE);
 
-	float xmin = -2.f;
-	float xmax = 2.f;
-	float ymin = -2.f;
-	float ymax = 2.f;
+	float xmin = -1.f;
+	float xmax = 1.f;
+	float ymin = -1.f;
+	float ymax = 1.f;
 	float dx = xmax - xmin;
 	float dy = ymax - ymin;
 	float z = 0.f;
@@ -774,8 +805,8 @@ void Keyboard(unsigned char c, int x, int y)
 
 	switch (c)
 	{
-	case 'f':
-	case 'F':
+	case 'z':
+	case 'Z':
 		Freeze = !Freeze;
 		if (Freeze)
 			glutIdleFunc(NULL);
@@ -794,19 +825,35 @@ void Keyboard(unsigned char c, int x, int y)
 		break;
 
 	case 'a':
-		WaveAmplitude += 0.1f;
+		WaveAmplitude += 0.05f;
 		break;
 
 	case 'A':
-		WaveAmplitude -= 0.1f;
+		WaveAmplitude -= 0.05f;
 		break;
 
 	case 'w':
-		WavePeriod += 0.1f;
+		WavePeriod += 0.05f;
 		break;
 
 	case 'W':
-		WavePeriod -= 0.1f;
+		WavePeriod -= 0.05f;
+		break;
+
+	case 'n':
+		NoiseAmplitude += 0.1f;
+		break;
+
+	case 'N':
+		NoiseAmplitude -= 0.1f;
+		break;
+
+	case 'r':
+		NoiseFrequency += 0.1f;
+		break;
+
+	case 'R':
+		NoiseFrequency -= 0.1f;
 		break;
 
 	case 'q':
@@ -1193,4 +1240,28 @@ float Unit(float v[3])
 		v[2] /= dist;
 	}
 	return dist;
+}
+
+unsigned char *
+ReadTexture3D(char *filename, int *width, int *height, int *depth)
+{
+	FILE *fp = fopen(filename, "rb");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Could not load file %s!\n", filename);
+		return NULL;
+	}
+
+	int nums, numt, nump;
+	fread(&nums, 4, 1, fp);
+	fread(&numt, 4, 1, fp);
+	fread(&nump, 4, 1, fp);
+	fprintf(stderr, "Texture size = %d x %d x %d\n", nums, numt, nump);
+	*width = nums;
+	*height = numt;
+	*depth = nump;
+	unsigned char *texture = new unsigned char[4 * nums * numt * nump];
+	fread(texture, 4 * nums * numt * nump, 1, fp);
+	fclose(fp);
+	return texture;
 }

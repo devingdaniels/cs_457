@@ -1,4 +1,18 @@
 
-0(47) : error C1038: declaration of "d" conflicts with previous declaration at 0(37)
-0(50) : error C1038: declaration of "s" conflicts with previous declaration at 0(29)
+ERROR: 0:51: Invalid call of undeclared identifier 'texture'
+ERROR: 0:52: Use of undeclared identifier 'nvx'
+ERROR: 0:52: Use of undeclared identifier 'nvx'
+ERROR: 0:52: Use of undeclared identifier 'nvx'
+ERROR: 0:52: Use of undeclared identifier 'nvx'
+ERROR: 0:53: Use of undeclared identifier 'angx'
+ERROR: 0:55: Invalid call of undeclared identifier 'texture'
+ERROR: 0:56: Use of undeclared identifier 'nvy'
+ERROR: 0:56: Use of undeclared identifier 'nvy'
+ERROR: 0:56: Use of undeclared identifier 'nvy'
+ERROR: 0:56: Use of undeclared identifier 'nvy'
+ERROR: 0:57: Use of undeclared identifier 'angy'
+ERROR: 0:66: Use of undeclared identifier 'angx'
+ERROR: 0:66: Use of undeclared identifier 'angy'
+ERROR: 0:67: Use of undeclared identifier 'n'
+ERROR: 0:67: Use of undeclared identifier 'n'
 

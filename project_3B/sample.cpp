@@ -55,7 +55,7 @@
 
 // title of these windows:
 
-const char *WINDOWTITLE = "OpenGL / GLUT Sample -- Joe Graphics";
+const char *WINDOWTITLE = "OpenGL / GLUT Sample -- Devin Daniels";
 const char *GLUITITLE = "User Interface Window";
 
 // what the glui package defines as true and false:
@@ -420,7 +420,7 @@ void Display()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_3D, Noise3);
 
-		// set the uniform variables that will change over time:
+	// set the uniform variables that will change over time:
 	Pattern.SetUniformVariable("Noise3", 3);
 
 	NowS0 = 0.5f;

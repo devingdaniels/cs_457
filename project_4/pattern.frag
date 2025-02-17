@@ -1,53 +1,85 @@
-// lighting uniform variables -- these can be set once and left alone:
-uniform float   uKa, uKd, uKs;	 // coefficients of each type of lighting -- make sum to 1.0
-uniform vec3    uColor;		 // object color
-uniform vec3    uSpecularColor;	 // light color
-uniform float   uShininess;	 // specular exponent
+uniform sampler3D    Noise3;
+uniform float       uNoiseAmp;
+uniform float       uNoiseFreq;
+uniform float       uEta;
+uniform float       uMix;
+uniform float       uWhiteMix;
+uniform samplerCube uReflectUnit;
+uniform samplerCube uRefractUnit;
 
-// square-equation uniform variables -- these should be set every time Display( ) is called:
+varying vec3    vNormal;
+varying vec3    vEyeDir;
+varying vec3    vMC;
 
-uniform float   uS0, uT0, uD;
+const vec3  WHITE = vec3(1., 1., 1.);
 
-// in variables from the vertex shader and interpolated in the rasterizer:
-
-varying  vec3  vN;		   // normal vector
-varying  vec3  vL;		   // vector from point to light
-varying  vec3  vE;		   // vector from point to eye
-varying  vec2  vST;		   // (s,t) texture coordinates
-
-
-void
-main( )
+vec3
+PerturbNormal3(float angx, float angy, float angz, vec3 n)
 {
-	float s = vST.s;
-	float t = vST.t;
-
-	// determine the color using the square-boundary equations:
-
-	vec3 myColor = uColor;
-	if( uS0-uD/2. <= s  &&  s <= uS0+uD/2.  &&  uT0-uD/2. <= t  &&  t <= uT0+uD/2. )
-	{
-		myColor = vec3( 1., 0., 0. );;
-	}
-
-	// apply the per-fragmewnt lighting to myColor:
-
-	vec3 Normal = normalize(vN);
-	vec3 Light  = normalize(vL);
-	vec3 Eye    = normalize(vE);
-
-	vec3 ambient = uKa * myColor;
-
-	float dd = max( dot(Normal,Light), 0. );       // only do diffuse if the light can see the point
-	vec3 diffuse = uKd * dd * myColor;
-
-	float ss = 0.;
-	if( dot(Normal,Light) > 0. )	      // only do specular if the light can see the point
-	{
-		vec3 ref = normalize(  reflect( -Light, Normal )  );
-		ss = pow( max( dot(Eye,ref),0. ), uShininess );
-	}
-	vec3 specular = uKs * ss * uSpecularColor;
-	gl_FragColor = vec4( ambient + diffuse + specular,  1. );
+    float cx = cos(angx);
+    float sx = sin(angx);
+    float cy = cos(angy);
+    float sy = sin(angy);
+    float cz = cos(angz);
+    float sz = sin(angz);
+    
+    // rotate about x:
+    float yp =  n.y*cx - n.z*sx;    // y'
+    n.z      =  n.y*sx + n.z*cx;    // z'
+    n.y      =  yp;
+    
+    // rotate about y:
+    float xp =  n.x*cy + n.z*sy;    // x'
+    n.z      = -n.x*sy + n.z*cy;    // z'
+    n.x      =  xp;
+    
+    // rotate about z:
+    xp       =  n.x*cz - n.y*sz;    // x'
+    n.y      =  n.x*sz + n.y*cz;    // y'
+    n.x      =  xp;
+    
+    return normalize(n);
 }
 
+void main()
+{
+    vec4 nvx = texture3D(Noise3, uNoiseFreq*vMC);
+    vec4 nvy = texture3D(Noise3, uNoiseFreq*vec3(vMC.xy,vMC.z+0.33));
+    vec4 nvz = texture3D(Noise3, uNoiseFreq*vec3(vMC.xy,vMC.z+0.67));
+
+    float angx = nvx.r + nvx.g + nvx.b + nvx.a;    //  1. -> 3.
+    angx = angx - 2.;                            // -1. -> 1.
+    angx *= uNoiseAmp;
+
+    float angy = nvy.r + nvy.g + nvy.b + nvy.a;    //  1. -> 3.
+    angy = angy - 2.;                            // -1. -> 1.
+    angy *= uNoiseAmp;
+
+    float angz = nvz.r + nvz.g + nvz.b + nvz.a;    //  1. -> 3.
+    angz = angz - 2.;                            // -1. -> 1.
+    angz *= uNoiseAmp;
+
+    vec3 normal = vNormal;
+    normal = PerturbNormal3(angx, angy, angz, normal);
+    normal = normalize(gl_NormalMatrix * normal);
+
+    vec3 reflectVector = reflect(vEyeDir, normal);
+    vec3 reflectColor = textureCube(uReflectUnit, reflectVector).rgb;
+
+    vec3 refractVector = refract(vEyeDir, normal, uEta);
+    
+    vec3 refractColor;
+    if(all(equal(refractVector, vec3(0.,0.,0.))))
+    {
+        refractColor = reflectColor;
+    }
+    else
+    {
+        refractColor = textureCube(uRefractUnit, refractVector).rgb;
+        refractColor = mix(refractColor, WHITE, uWhiteMix);
+    }
+    
+    vec3 color = mix(refractColor, reflectColor, uMix);
+    color = mix(color, WHITE, uWhiteMix);
+    gl_FragColor = vec4(color, 1.);
+}

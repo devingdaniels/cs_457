@@ -179,10 +179,13 @@ float Time;			// used for animation, this has a value between 0. and 1.
 int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
 
-int SphereList;
+// Project 5 variables
+GLuint QuadList;
+GLuint PugTex;
 
 // function prototypes:
 
+unsigned char *ReadTexture3D(char *filename, int *width, int *height, int *depth);
 void Animate();
 void Display();
 void DoAxesMenu(int);
@@ -255,10 +258,10 @@ MulArray3(float factor, float a, float b, float c)
 
 // #include "setmaterial.cpp"
 // #include "setlight.cpp"
-#include "osusphere.cpp"
+// #include "osusphere.cpp"
 // #include "osucone.cpp"
 // #include "osutorus.cpp"
-// #include "bmptotexture.cpp"
+#include "bmptotexture.cpp"
 // #include "loadobjfile.cpp"
 #include "keytime.cpp"
 #include "glslprogram.cpp"
@@ -404,14 +407,10 @@ void Display()
 
 	// set the uniform variables that will change over time:
 
-	NowS0 = 0.5f;
-	NowT0 = 0.5f;
-	NowD = 0.2f + 0.1f * sinf(2.f * F_PI * Time);
-	Pattern.SetUniformVariable((char *)"uS0", NowS0);
-	Pattern.SetUniformVariable((char *)"uT0", NowT0);
-	Pattern.SetUniformVariable((char *)"uD", NowD);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, PugTex);
 
-	glCallList(SphereList);
+	glCallList(QuadList);
 
 	Pattern.UnUse(); // Pattern.Use(0);  also works
 
@@ -695,16 +694,27 @@ void InitGraphics()
 	else
 		fprintf(stderr, "Pattern shader created!\n");
 
-	// set the uniform variables that will not change:
-
 	Pattern.Use();
-	Pattern.SetUniformVariable((char *)"uKa", 0.1f);
-	Pattern.SetUniformVariable((char *)"uKd", 0.5f);
-	Pattern.SetUniformVariable((char *)"uKs", 0.4f);
-	Pattern.SetUniformVariable((char *)"uColor", 1.f, 0.5f, 0.f, 1.f);
-	Pattern.SetUniformVariable((char *)"uSpecularColor", 1.f, 1.f, 1.f, 1.f);
-	Pattern.SetUniformVariable((char *)"uShininess", 12.f);
+	Pattern.SetUniformVariable((char *)"uTexUnit", 0);
 	Pattern.UnUse();
+
+	glGenTextures(1, &PugTex);
+	int width, height;
+	unsigned char *texture = BmpToTexture("pug.bmp", &width, &height);
+	int level = 0, ncomps = 3, border = 0;
+	if (texture == NULL)
+	{
+		fprintf(stderr, "Could not load pug.bmp!\n");
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, PugTex);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, level, ncomps, width, height, border, GL_RGB, GL_UNSIGNED_BYTE, texture);
+	}
 }
 
 // initialize the display lists that will not change:
@@ -721,9 +731,18 @@ void InitLists()
 
 	// create the object:
 
-	SphereList = glGenLists(1);
-	glNewList(SphereList, GL_COMPILE);
-	OsuSphere(1., 64, 64);
+	QuadList = glGenLists(1);
+	glNewList(QuadList, GL_COMPILE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0., 0.);
+	glVertex3f(-1., -1., 0.);
+	glTexCoord2f(1., 0.);
+	glVertex3f(1., -1., 0.);
+	glTexCoord2f(1., 1.);
+	glVertex3f(1., 1., 0.);
+	glTexCoord2f(0., 1.);
+	glVertex3f(-1., 1., 0.);
+	glEnd();
 	glEndList();
 
 	// create the axes:
@@ -1148,4 +1167,28 @@ float Unit(float v[3])
 		v[2] /= dist;
 	}
 	return dist;
+}
+
+unsigned char *
+ReadTexture3D(char *filename, int *width, int *height, int *depth)
+{
+	FILE *fp = fopen(filename, "rb");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Could not load file %s!\n", filename);
+		return NULL;
+	}
+
+	int nums, numt, nump;
+	fread(&nums, 4, 1, fp);
+	fread(&numt, 4, 1, fp);
+	fread(&nump, 4, 1, fp);
+	fprintf(stderr, "Texture size = %d x %d x %d\n", nums, numt, nump);
+	*width = nums;
+	*height = numt;
+	*depth = nump;
+	unsigned char *texture = new unsigned char[4 * nums * numt * nump];
+	fread(texture, 4 * nums * numt * nump, 1, fp);
+	fclose(fp);
+	return texture;
 }

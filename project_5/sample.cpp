@@ -182,9 +182,16 @@ float Xrot, Yrot;	// rotation angles in degrees
 // Project 5 variables
 GLuint QuadList;
 GLuint PugTex;
+float uR1 = 2.0;
+float uR2 = -2.0;
+float LensX = 0.0;
+float LensY = 0.0;
+float LensRadius = 0.3;
+float LensWhirl = 0.0; // whirl amount
+float LensMag = 2.0;   // magnification amount
+int LensMosaic = 1;	   // mosaic
 
 // function prototypes:
-
 unsigned char *ReadTexture3D(char *filename, int *width, int *height, int *depth);
 void Animate();
 void Display();
@@ -688,7 +695,7 @@ void InitGraphics()
 	// all other setups go here, such as GLSLProgram and KeyTime setups:
 
 	Pattern.Init();
-	bool valid = Pattern.Create((char *)"pattern.vert", (char *)"pattern.frag");
+	bool valid = Pattern.Create((char *)"lens.vert", (char *)"lens.frag");
 	if (!valid)
 		fprintf(stderr, "Could not create the Pattern shader!\n");
 	else
@@ -696,6 +703,13 @@ void InitGraphics()
 
 	Pattern.Use();
 	Pattern.SetUniformVariable((char *)"uTexUnit", 0);
+	Pattern.SetUniformVariable((char *)"uR1", uR1);
+	Pattern.SetUniformVariable((char *)"uR2", uR2);
+	Pattern.SetUniformVariable((char *)"uWhirl", LensWhirl);
+	Pattern.SetUniformVariable((char *)"uMag", LensMag);
+	Pattern.SetUniformVariable((char *)"uMosaic", LensMosaic);
+	Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
+	Pattern.SetUniformVariable((char *)"uLensRadius", LensRadius);
 	Pattern.UnUse();
 
 	glGenTextures(1, &PugTex);
@@ -729,23 +743,28 @@ void InitLists()
 
 	glutSetWindow(MainWindow);
 
-	// create the object:
-
 	QuadList = glGenLists(1);
 	glNewList(QuadList, GL_COMPILE);
 	glBegin(GL_QUADS);
-	glTexCoord2f(0., 0.);
-	glVertex3f(-1., -1., 0.);
-	glTexCoord2f(1., 0.);
-	glVertex3f(1., -1., 0.);
-	glTexCoord2f(1., 1.);
-	glVertex3f(1., 1., 0.);
-	glTexCoord2f(0., 1.);
-	glVertex3f(-1., 1., 0.);
+
+	// Bottom left
+	glTexCoord2f(0, 0);
+	glVertex3f(-1, -1, 0);
+
+	// Bottom right
+	glTexCoord2f(1, 0);
+	glVertex3f(1, -1, 0);
+
+	// Top right
+	glTexCoord2f(1, 1);
+	glVertex3f(1, 1, 0);
+
+	// Top left
+	glTexCoord2f(0, 1);
+	glVertex3f(-1, 1, 0);
+
 	glEnd();
 	glEndList();
-
-	// create the axes:
 
 	AxesList = glGenLists(1);
 	glNewList(AxesList, GL_COMPILE);
@@ -764,14 +783,6 @@ void Keyboard(unsigned char c, int x, int y)
 
 	switch (c)
 	{
-	case 'f':
-	case 'F':
-		Freeze = !Freeze;
-		if (Freeze)
-			glutIdleFunc(NULL);
-		else
-			glutIdleFunc(Animate);
-		break;
 
 	case 'o':
 	case 'O':
@@ -783,11 +794,93 @@ void Keyboard(unsigned char c, int x, int y)
 		NowProjection = PERSP;
 		break;
 
-	case 'q':
-	case 'Q':
-	case ESCAPE:
-		DoMainMenu(QUIT); // will not return here
-		break;			  // happy compiler
+	case 'w':
+		LensY += 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
+		Pattern.UnUse();
+		break;
+
+	case 's':
+		LensY -= 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
+		Pattern.UnUse();
+		break;
+
+	case 'a':
+		LensX -= 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
+		Pattern.UnUse();
+		break;
+
+	case 'd':
+		LensX += 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
+		Pattern.UnUse();
+		break;
+
+		// radius controls
+	case 'R':
+		LensRadius += 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uLensRadius", LensRadius);
+		Pattern.UnUse();
+		break;
+
+	case 'r':
+		LensRadius = (LensRadius - 0.1 > 0.1) ? LensRadius - 0.1 : 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uLensRadius", LensRadius);
+		Pattern.UnUse();
+		break;
+
+	// whirl controls
+	case 'Z':
+		LensWhirl += 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uWhirl", LensWhirl);
+		Pattern.UnUse();
+		break;
+
+	case 'z':
+		LensWhirl -= 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uWhirl", LensWhirl);
+		Pattern.UnUse();
+		break;
+
+	// magnification controls
+	case 'M':
+		LensMag += 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uMag", LensMag);
+		Pattern.UnUse();
+		break;
+
+	case 'm':
+		LensMag = (LensMag - 0.1 > 0.1) ? LensMag - 0.1 : 0.1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uMag", LensMag);
+		Pattern.UnUse();
+		break;
+
+	// mosaic controls
+	case 'B':
+		LensMosaic++;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uMosaic", LensMosaic);
+		Pattern.UnUse();
+		break;
+
+	case 'b':
+		LensMosaic = (LensMosaic > 1) ? LensMosaic - 1 : 1;
+		Pattern.Use();
+		Pattern.SetUniformVariable((char *)"uMosaic", LensMosaic);
+		Pattern.UnUse();
+		break;
 
 	default:
 		fprintf(stderr, "Don't know what to do with keyboard hit: '%c' (0x%0x)\n", c, c);

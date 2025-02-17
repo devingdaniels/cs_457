@@ -1,4 +1,8 @@
 
-0(47) : error C1038: declaration of "d" conflicts with previous declaration at 0(37)
-0(50) : error C1038: declaration of "s" conflicts with previous declaration at 0(29)
+ERROR: 0:43: '*' does not operate on 'float' and 'int'
+ERROR: 0:44: '*' does not operate on 'float' and 'int'
+ERROR: 0:47: Use of undeclared identifier 'blockS'
+ERROR: 0:48: Use of undeclared identifier 'blockT'
+ERROR: 0:51: Use of undeclared identifier 'sc'
+ERROR: 0:52: Use of undeclared identifier 'tc'
 

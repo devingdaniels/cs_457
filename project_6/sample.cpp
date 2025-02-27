@@ -179,7 +179,7 @@ float Time;			// used for animation, this has a value between 0. and 1.
 int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
 
-int SphereList;
+int SnakeList;
 
 // function prototypes:
 
@@ -259,7 +259,7 @@ MulArray3(float factor, float a, float b, float c)
 // #include "osucone.cpp"
 // #include "osutorus.cpp"
 // #include "bmptotexture.cpp"
-// #include "loadobjfile.cpp"
+#include "loadobjfile.cpp"
 #include "keytime.cpp"
 #include "glslprogram.cpp"
 
@@ -721,9 +721,9 @@ void InitLists()
 
 	// create the object:
 
-	SphereList = glGenLists(1);
-	glNewList(SphereList, GL_COMPILE);
-	OsuSphere(1., 64, 64);
+	SnakeList = glGenLists(1);
+	glNewList(SnakeList, GL_COMPILE);
+	LoadObjFile("snake.obj");
 	glEndList();
 
 	// create the axes:

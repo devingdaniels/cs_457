@@ -22,12 +22,8 @@ main( )
 	float s = vST.s;
 	float t = vST.t;
 
-	// determine the color using the square-boundary equations:
-
 	vec3 myColor = uColor;
 	
-
-	// apply the per-fragmewnt lighting to myColor:
 
 	vec3 Normal = normalize(vN);
 	vec3 Light  = normalize(vL);

@@ -179,10 +179,11 @@ float Time;			// used for animation, this has a value between 0. and 1.
 int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
 
+// Project 6
 int SnakeList;
+double zoomPosition = 3.f;
 
 // function prototypes:
-
 void Animate();
 void Display();
 void DoAxesMenu(int);
@@ -373,7 +374,7 @@ void Display()
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt(0.f, 0.f, 3.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+	gluLookAt(0.f, 0.f, zoomPosition, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
 
 	// rotate the scene:
 
@@ -411,7 +412,7 @@ void Display()
 	Pattern.SetUniformVariable((char *)"uT0", NowT0);
 	Pattern.SetUniformVariable((char *)"uD", NowD);
 
-	glCallList(SphereList);
+	glCallList(SnakeList);
 
 	Pattern.UnUse(); // Pattern.Use(0);  also works
 
@@ -762,6 +763,13 @@ void Keyboard(unsigned char c, int x, int y)
 	case 'p':
 	case 'P':
 		NowProjection = PERSP;
+		break;
+
+	case 'z':
+		zoomPosition -= 0.1f;
+		break;
+	case 'Z':
+		zoomPosition += 0.1f;
 		break;
 
 	case 'q':

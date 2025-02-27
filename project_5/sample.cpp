@@ -383,7 +383,7 @@ void Display()
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt(0.f, 0.f, 3.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+	gluLookAt(0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
 
 	// rotate the scene:
 
@@ -795,28 +795,28 @@ void Keyboard(unsigned char c, int x, int y)
 		break;
 
 	case 'w':
-		LensY += 0.1;
+		LensY += 0.05;
 		Pattern.Use();
 		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
 		Pattern.UnUse();
 		break;
 
 	case 's':
-		LensY -= 0.1;
+		LensY -= 0.05;
 		Pattern.Use();
 		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
 		Pattern.UnUse();
 		break;
 
 	case 'a':
-		LensX -= 0.1;
+		LensX -= 0.05;
 		Pattern.Use();
 		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
 		Pattern.UnUse();
 		break;
 
 	case 'd':
-		LensX += 0.1;
+		LensX += 0.05;
 		Pattern.Use();
 		Pattern.SetUniformVariable((char *)"uLensCenter", LensX, LensY);
 		Pattern.UnUse();
@@ -824,14 +824,14 @@ void Keyboard(unsigned char c, int x, int y)
 
 		// radius controls
 	case 'R':
-		LensRadius += 0.1;
+		LensRadius += 0.05;
 		Pattern.Use();
 		Pattern.SetUniformVariable((char *)"uLensRadius", LensRadius);
 		Pattern.UnUse();
 		break;
 
 	case 'r':
-		LensRadius = (LensRadius - 0.1 > 0.1) ? LensRadius - 0.1 : 0.1;
+		LensRadius = (LensRadius - 0.05 > 0.05) ? LensRadius - 0.05 : 0.05;
 		Pattern.Use();
 		Pattern.SetUniformVariable((char *)"uLensRadius", LensRadius);
 		Pattern.UnUse();

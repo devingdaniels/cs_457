@@ -181,7 +181,7 @@ float Xrot, Yrot;	// rotation angles in degrees
 
 // Project 6
 int SnakeList;
-double zoomPosition = 3.f;
+double zoomPosition = 9.f;
 
 // function prototypes:
 void Animate();
@@ -411,6 +411,7 @@ void Display()
 	Pattern.SetUniformVariable((char *)"uS0", NowS0);
 	Pattern.SetUniformVariable((char *)"uT0", NowT0);
 	Pattern.SetUniformVariable((char *)"uD", NowD);
+	Pattern.SetUniformVariable((char *)"uTime", Time);
 
 	glCallList(SnakeList);
 
@@ -702,7 +703,7 @@ void InitGraphics()
 	Pattern.SetUniformVariable((char *)"uKa", 0.1f);
 	Pattern.SetUniformVariable((char *)"uKd", 0.5f);
 	Pattern.SetUniformVariable((char *)"uKs", 0.4f);
-	Pattern.SetUniformVariable((char *)"uColor", 1.f, 0.5f, 0.f, 1.f);
+	Pattern.SetUniformVariable((char *)"uColor", 0.3f, 0.5f, 1.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uSpecularColor", 1.f, 1.f, 1.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uShininess", 12.f);
 	Pattern.UnUse();
@@ -766,9 +767,11 @@ void Keyboard(unsigned char c, int x, int y)
 		break;
 
 	case 'z':
+		printf("zoomPosition: %f\n", zoomPosition);
 		zoomPosition -= 0.1f;
 		break;
 	case 'Z':
+		printf("zoomPosition: %f\n", zoomPosition);
 		zoomPosition += 0.1f;
 		break;
 

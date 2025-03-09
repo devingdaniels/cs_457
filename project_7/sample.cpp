@@ -179,7 +179,7 @@ float Time;			// used for animation, this has a value between 0. and 1.
 int Xmouse, Ymouse; // mouse values
 float Xrot, Yrot;	// rotation angles in degrees
 
-int SphereList;
+int ObjList;
 
 // function prototypes:
 
@@ -259,7 +259,7 @@ MulArray3(float factor, float a, float b, float c)
 // #include "osucone.cpp"
 // #include "osutorus.cpp"
 // #include "bmptotexture.cpp"
-// #include "loadobjfile.cpp"
+#include "loadobjfile.cpp"
 #include "keytime.cpp"
 #include "glslprogram.cpp"
 
@@ -398,22 +398,21 @@ void Display()
 
 	glEnable(GL_NORMALIZE);
 
-	// draw the box object by calling up its display list:
-
 	Pattern.Use();
 
-	// set the uniform variables that will change over time:
+	// Calculate twist amount based on animation Time
+	// Oscillate between positive and negative twist for the twisting dishrag effect
+	float twistAmount = sin(2.f * F_PI * Time) * 2.0f;
 
-	NowS0 = 0.5f;
-	NowT0 = 0.5f;
-	NowD = 0.2f + 0.1f * sinf(2.f * F_PI * Time);
-	Pattern.SetUniformVariable((char *)"uS0", NowS0);
-	Pattern.SetUniformVariable((char *)"uT0", NowT0);
-	Pattern.SetUniformVariable((char *)"uD", NowD);
+	// set the uniform variables for hatching and twisting
+	Pattern.SetUniformVariable((char *)"uHatchFreq", 20.0f);
+	Pattern.SetUniformVariable((char *)"uHatchWidth", 0.05f);
+	Pattern.SetUniformVariable((char *)"uTwist", twistAmount);
 
-	glCallList(SphereList);
+	// Call your OBJ list instead of the sphere list
+	glCallList(ObjList);
 
-	Pattern.UnUse(); // Pattern.Use(0);  also works
+	Pattern.UnUse();
 
 	// draw some gratuitous text that just rotates on top of the scene:
 	// i commented out the actual text-drawing calls -- put them back in if you have a use for them
@@ -704,6 +703,8 @@ void InitGraphics()
 	Pattern.SetUniformVariable((char *)"uColor", 1.f, 0.5f, 0.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uSpecularColor", 1.f, 1.f, 1.f, 1.f);
 	Pattern.SetUniformVariable((char *)"uShininess", 12.f);
+	Pattern.SetUniformVariable((char *)"uHatchFreq", 20.0f);  // Initial value
+	Pattern.SetUniformVariable((char *)"uHatchWidth", 0.05f); // Initial value
 	Pattern.UnUse();
 }
 
@@ -719,11 +720,9 @@ void InitLists()
 
 	glutSetWindow(MainWindow);
 
-	// create the object:
-
-	SphereList = glGenLists(1);
-	glNewList(SphereList, GL_COMPILE);
-	OsuSphere(1., 64, 64);
+	ObjList = glGenLists(1);
+	glNewList(ObjList, GL_COMPILE);
+	LoadObjFile((char *)"dino.obj");
 	glEndList();
 
 	// create the axes:

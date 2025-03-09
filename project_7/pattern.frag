@@ -18,7 +18,7 @@ varying  vec3  vE;		   // vector from point to eye
 varying  vec2  vST;		   // (s,t) texture coordinates
 varying  vec3  vMC;           // model coordinates
 
-// Function for smooth transitions
+
 float SmoothPulse(float left, float right, float value, float tol)
 {
     float t = smoothstep(left-tol, left+tol, value) - 

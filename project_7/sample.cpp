@@ -402,7 +402,7 @@ void Display()
 
 	// Calculate twist amount based on animation Time
 	// Oscillate between positive and negative twist for the twisting dishrag effect
-	float twistAmount = sin(2.f * F_PI * Time) * 2.0f;
+	float twistAmount = sin(2.f * F_PI * Time) * .5f;
 
 	// set the uniform variables for hatching and twisting
 	Pattern.SetUniformVariable((char *)"uHatchFreq", 20.0f);

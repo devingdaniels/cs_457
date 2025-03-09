@@ -62,7 +62,7 @@ main( )
 	// Store texture coordinates
 	vST = gl_MultiTexCoord0.st;
 	
-	// Apply twisting around Y axis (you can change to X or Z if preferred)
+	// Apply twisting around Y axis
 	// The twist angle is proportional to the distance from the axis
 	float distanceFromAxis = length(originalPosition.xz); // Distance from Y axis
 	float twistAngle = uTwist * distanceFromAxis;
@@ -72,8 +72,6 @@ main( )
 	twistedVertex.xyz = RotateY(originalPosition, twistAngle);
 	
 	// Calculate normal for the twisted object
-	// This is a simplified approach - for better results, you might need to transform 
-	// the normal based on the twisting applied
 	vec3 twistedNormal = gl_Normal;
 	if(length(twistedNormal) > 0.0)
 	{
@@ -82,7 +80,7 @@ main( )
 		twistedNormal = normalize(twistedNormal);
 	}
 	
-	// Continue with regular vertex shader operations
+
 	vec4 ECposition = gl_ModelViewMatrix * vec4(twistedVertex.xyz, 1.0);
 	vN = normalize(gl_NormalMatrix * twistedNormal);
 	vL = LightPosition - ECposition.xyz;
